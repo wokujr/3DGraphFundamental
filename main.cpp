@@ -5,7 +5,10 @@
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
-
+#include "GLM/mat4x4.hpp"
+#include "GLM/glm.hpp"
+#include "GLM/gtc/matrix_transform.hpp"
+#include "GLM/gtc/type_ptr.hpp"
 
 
 //width and height
@@ -14,7 +17,7 @@ int windowHeight = 600;
 
 // VAO = Vertex Array Object
 // VBO = Vertex Buffer Object
-GLuint VAO, VBO, shader, uniformXMove;
+GLuint VAO, VBO, shader, uniformModel;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -25,8 +28,8 @@ float triIncrement = 0.005f;
 static const char* vShader =
 "#version 430 \n"
 "layout (location = 0) in vec3 pos; \n"
-"uniform float xMove; \n"
-"void main() {gl_Position = vec4 (0.4 * pos.x + xMove, 0.4 * pos.y, pos.z, 1.0);} \n";
+"uniform mat4 model; \n"
+"void main() {gl_Position = model * vec4 (0.4 * pos.x, 0.4 * pos.y, pos.z, 1.0);} \n"; // it will take whatever calculation in there from "model" if we translate X direction it will go to X direction same for Y and Z
 
 static const char* fShader =
 "#version 430 \n"
@@ -115,7 +118,7 @@ void CompileShader()
 		return;
 	}
 
-	uniformXMove = glGetUniformLocation(shader, "xMove");
+	uniformModel = glGetUniformLocation(shader, "model");
 
 }
 
@@ -193,7 +196,11 @@ int main()
 
 		glUseProgram(shader);
 
-		glUniform1f(uniformXMove, triOffset);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(triOffset, 0.f, 0.f)); // it will move the object to X direction, if put "triOffset" on Y it will go diagonally.	
+
+		glUniform1f(uniformModel, triOffset);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));	//GL_FALSE meaning we don't want to flip, glm::value_ptr is pointer to the current location on object.
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
