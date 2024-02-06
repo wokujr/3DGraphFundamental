@@ -26,12 +26,19 @@ float triMaxOffset = 0.7f;
 float triIncrement = 0.005f;
 float curAngle = 0.f;
 
+bool sizeDirection = true;
+float curSize = 0.4f;
+float maxSize = 0.8f;
+float minSize = 0.1f;
+
+
+
 // Vertex Shader
 static const char* vShader =
 "#version 430 \n"
 "layout (location = 0) in vec3 pos; \n"
 "uniform mat4 model; \n"
-"void main() {gl_Position = model * vec4 (0.4 * pos.x, 0.4 * pos.y, pos.z, 1.0);} \n"; // it will take whatever calculation in there from "model" if we translate X direction it will go to X direction same for Y and Z
+"void main() {gl_Position = model * vec4 (pos, 1.0);} \n"; // it will take whatever calculation in there from "model" if we translate X direction it will go to X direction same for Y and Z
 
 static const char* fShader =
 "#version 430 \n"
@@ -197,6 +204,19 @@ int main()
 			curAngle -= 360; // to make sure it won't rotate over 360 if it hit 360 it will become -360 and not overlapping 360degree circle
 		}
 
+		if (sizeDirection)
+		{
+			curSize += 0.001f;
+		}
+		else
+		{
+			curSize -= 0.001f;
+		}
+		if (curSize >= maxSize || curSize <= minSize)
+		{
+			sizeDirection = !sizeDirection;
+		}
+
 
 		//Clear window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0);
@@ -206,7 +226,8 @@ int main()
 
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(triOffset, 0.f, 0.f)); // it will move the object to X direction, if put "triOffset" on Y it will go diagonally.
-		model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.f, 0.f, 1.f));
+		//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.f, 0.f, 1.f));
+		model = glm::scale(model, glm::vec3(curSize, 0.4f, 1.f));
 
 		glUniform1f(uniformModel, triOffset);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));	//GL_FALSE meaning we don't want to flip, glm::value_ptr is pointer to the current location on object.
