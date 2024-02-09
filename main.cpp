@@ -35,15 +35,25 @@ float minSize = 0.1f;
 
 // Vertex Shader
 static const char* vShader =
-"#version 430 \n"
-"layout (location = 0) in vec3 pos; \n"
-"uniform mat4 model; \n"
-"void main() {gl_Position = model * vec4 (pos, 1.0);} \n"; // it will take whatever calculation in there from "model" if we translate X direction it will go to X direction same for Y and Z
+"#version 430										\n"
+"layout (location = 0) in vec3 pos;					\n"
+"out vec4 vColor;									\n" // vertex color
+"uniform mat4 model;								\n"
+"void main() "
+"{"
+	"gl_Position = model * vec4 (pos, 1.0);			\n"
+	"vColor = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);	\n"
+"}													\n"
+; 
 
 static const char* fShader =
-"#version 430 \n"
-"out vec4 color; \n"
-"void main(){ color = vec4(0.0, 0.0, 1.0, 1.0); }"
+"#version 430										\n"
+"in vec4 vColor;									\n" // input vertex color
+"out vec4 color;									\n"
+"void main()"
+"{"
+	"color = vColor;								\n"
+"}"
 ;
 
 void CreateTriangle()
@@ -225,9 +235,9 @@ int main()
 		glUseProgram(shader);
 
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(triOffset, 0.f, 0.f)); // it will move the object to X direction, if put "triOffset" on Y it will go diagonally.
+		//model = glm::translate(model, glm::vec3(triOffset, 0.f, 0.f)); // it will move the object to X direction, if put "triOffset" on Y it will go diagonally.
 		//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.f, 0.f, 1.f));
-		model = glm::scale(model, glm::vec3(curSize, 0.4f, 1.f));
+		model = glm::scale(model, glm::vec3(0.4, 0.4f, 1.f));
 
 		glUniform1f(uniformModel, triOffset);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));	//GL_FALSE meaning we don't want to flip, glm::value_ptr is pointer to the current location on object.
