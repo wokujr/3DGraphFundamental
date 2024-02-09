@@ -18,7 +18,7 @@ const float toRadians = 3.14159265f / 180.f; //the scale 0 or 2 * pi supposed to
 
 // VAO = Vertex Array Object
 // VBO = Vertex Buffer Object
-GLuint VAO, VBO, shader, uniformModel;
+GLuint VAO, VBO, IBO, shader, uniformModel;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -58,14 +58,28 @@ static const char* fShader =
 
 void CreateTriangle()
 {
+	// this will connect the vertices with another vertices, imagine it draw line from point of top to left-bottom, and so on
+	unsigned int indices[] =
+	{
+		0, 3, 1,   // Triangle 1: Vertices 0, 3, 1
+		1, 3, 2,   // Triangle 2: Vertices 1, 3, 2
+		2, 3, 0,   // Triangle 3: Vertices 2, 3, 0
+		0, 1, 2    // Triangle 4: Vertices 0, 1, 2
+	};
+
 	GLfloat vertices[] = {
-		0.0f,  1.0f, 0.0f,
-	   -1.0f, -1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f
+		-1.f, -1.f, 0.f,	// Vertex 1: (-1, -1, 0) - bottom-left
+		0.f, -1.f, 1.f,		// Vertex 2: (0, -1, 1) - bottom-right
+		1.f, -1.f, 0.f,		// Vertex 3: (1, -1, 0) - bottom-right
+		0.f,  1.f, 0.f		// Vertex 4: (0, 1, 0) - top-center
 	};
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &IBO);	//some folks make it a EBO which is Element Buffer Object, but in this case IBO is used which is Index Buffer Object, its same concept after all
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -74,8 +88,11 @@ void CreateTriangle()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);	//unbind buffer array
-	glBindVertexArray(0);						//unbind vertex array
+	glBindBuffer(GL_ARRAY_BUFFER, 0);			//unbind buffer array (VBO)
+
+	glBindVertexArray(0);								//unbind vertex array (VAO)
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);	//unbind the Index Buffer or Element Buffer IBO/EBO
 
 }
 
@@ -236,15 +253,19 @@ int main()
 
 		glm::mat4 model = glm::mat4(1.0f);
 		//model = glm::translate(model, glm::vec3(triOffset, 0.f, 0.f)); // it will move the object to X direction, if put "triOffset" on Y it will go diagonally.
-		//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.f, 0.f, 1.f));
+		model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.f, 1.f, 0.f));
 		model = glm::scale(model, glm::vec3(0.4, 0.4f, 1.f));
 
 		glUniform1f(uniformModel, triOffset);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));	//GL_FALSE meaning we don't want to flip, glm::value_ptr is pointer to the current location on object.
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
+
 		glBindVertexArray(0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		glUseProgram(0);
 
