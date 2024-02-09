@@ -197,6 +197,9 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
+	//Depth buffer
+	glEnable(GL_DEPTH_TEST);
+
 	//create viewport
 	glViewport(0, 0, bufferWidth, bufferHeight);
 	glfwSwapInterval(1);
@@ -247,7 +250,7 @@ int main()
 
 		//Clear window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//some bitwise operation that clear the color
 
 		glUseProgram(shader);
 
